@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script crossorigin src="https://unpkg.com/react@16/umd/react.development.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@16/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <title>Document</title>
+</head>
+<body>
+
+    <div id="div1"></div>
+    <div id="div2"></div>
+    <script type="text/babel">
+        async function Getdata(){
+            try{
+            const mytask=await axios.get('http://127.0.0.1:8000/api/task');
+            console.log(mytask);
+            return mytask;
+            }
+            catch(error){
+                console.error(error);
+            }
+        }
+        async function Deletedata(id){
+            try{
+            const mytask=await axios.delete('http://127.0.0.1:8000/api/task/'+id);
+            console.log(mytask);
+            alert("suppression effectué");
+            window.location.reload(false); 
+            return mytask;
+            }
+            catch(error){
+                console.error(error);
+            }
+        }
+    class App extends React.Component{
+        
+        state={
+            arraytask: [],
+            name: "",
+           
+        }
+        componentDidMount=()=>{
+            Getdata().then(task=>{
+                this.setState({arraytask:task.data});
+            }); 
+        }
+       
+        deletetask=(task)=>{
+            //delete from server
+        Deletedata(task.id).then(()=>{
+                 //delete from state
+        let aa=this.state.arraytask;
+        const index=aa.indexOf(task);
+        this.setState({arraytask});
+        
+        aa.splice(index,1);
+        Getdata().then(task=>{
+                this.setState({arraytask});
+            });
+        
+             })
+       
+        }
+                handlename = (event) => {
+                    console.log( event.target.value);
+                    this.setState({name:event.target.value});
+                }
+
+                 handleSubmit =async (event) => {
+                    event.preventDefault();
+
+                    await axios.post("http://127.0.0.1:8000/api/task",this.state)
+                    .then(res => {
+                        console.log(res);
+                        console.log(res.data);
+                    }) .then((res)=> alert("ajoue effectué"));
+                        window.location.reload(false); 
+                }
+        
+        render(){
+    return(
+        <div>
+           
+            <form onSubmit={this.handleSubmit}>
+                    <label>
+                        Name task:
+                        <input type="text" name="name" onChange={this.handlename} />
+                    </label>
+                    <button type="submit">Add</button>
+                    </form>
+            <table border="">
+                <thead>
+                    <th>nom task</th>
+                    <th>action</th>
+                    <th></th>
+                </thead>
+                <tbody>
+                {this.state.arraytask.map(task=>
+            <tr>
+                <td>{task.name}</td>
+                <td><button onClick={()=>this.deletetask(task)}>supprimer</button></td>
+                </tr>
+            )}
+        </tbody>
+                </table>    
+           
+        </div>
+        );
+    }
+    }
+    ReactDOM.render(<App/>,document.getElementById('div2'));
+   
+    </script>
+    
+</body>
+</html>
